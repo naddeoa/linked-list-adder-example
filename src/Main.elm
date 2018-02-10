@@ -2,11 +2,17 @@ module Main exposing (..)
 
 import Html exposing (Html, text, div, h1, img)
 import Html.Attributes exposing (src)
+import List exposing (all, isEmpty)
 
 
 tail : List a -> List a
 tail l =
     Maybe.withDefault [] <| List.tail l
+
+
+headOrZero : List Int -> Int
+headOrZero list =
+    Maybe.withDefault 0 <| List.head list
 
 
 addLists : List Int -> List Int -> List Int
@@ -16,45 +22,20 @@ addLists =
 
 addListsRec : Int -> List Int -> List Int -> List Int -> List Int
 addListsRec carry sum l1 l2 =
-    let
-        head1 =
-            List.head l1
+    if all isEmpty [ l1, l2 ] && carry == 0 then
+        sum
+    else
+        let
+            n =
+                (headOrZero l1) + (headOrZero l2) + carry
 
-        head2 =
-            List.head l2
-
-        combine n1 n2 =
-            let
-                added =
-                    carry + n1 + n2
-
-                newCarry =
-                    if added > 9 then
-                        1
-                    else
-                        0
-            in
-                addListsRec newCarry (List.append sum [ added % 10 ]) (tail l1) (tail l2)
-    in
-        case head1 of
-            Nothing ->
-                case head2 of
-                    Nothing ->
-                        if carry == 0 then
-                            sum
-                        else
-                            combine 0 0
-
-                    Just n2 ->
-                        combine 0 n2
-
-            Just n1 ->
-                case head2 of
-                    Nothing ->
-                        combine n1 0
-
-                    Just n2 ->
-                        combine n1 n2
+            ( newCarry, newN ) =
+                if n > 9 then
+                    ( 1, n % 10 )
+                else
+                    ( 0, n )
+        in
+            addListsRec newCarry (List.append sum [ newN ]) (tail l1) (tail l2)
 
 
 
