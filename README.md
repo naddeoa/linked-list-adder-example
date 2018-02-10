@@ -1,3 +1,4 @@
+Just an educational tool.
 
 To run
 
