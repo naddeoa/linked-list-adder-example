@@ -2,7 +2,7 @@
 To run
 
 ```
-npm install -g elm-app
+npm install -g create-elm-app
 elm-app start
 ```
 
