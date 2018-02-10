@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Html exposing (Html, text, div, h1, img)
 import Html.Attributes exposing (src)
+import Html.Events
 import List exposing (all, isEmpty, head, tail)
 import Maybe exposing (withDefault)
 
@@ -48,12 +49,14 @@ addListsRec carry sum l1 l2 =
 type alias Model =
     { l1 : List Int
     , l2 : List Int
+    , n1 : Int
+    , n2 : Int
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { l1 = [ 1, 8, 8 ], l2 = [ 9, 8, 7 ] }, Cmd.none )
+    ( { l1 = [ 1, 8, 8 ], l2 = [ 9, 8, 7 ], n1 = 881, n2 = 789 }, Cmd.none )
 
 
 
@@ -61,12 +64,28 @@ init =
 
 
 type Msg
-    = NoOp
+    = N1Changed String
+    | N2Changed String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        N1Changed n ->
+            case String.toInt n of
+                Ok result ->
+                    ( { model | n1 = result }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        N2Changed n ->
+            case String.toInt n of
+                Ok result ->
+                    ( { model | n2 = result }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
 
 listToNumber : List Int -> String
@@ -76,26 +95,53 @@ listToNumber list =
         |> String.join ""
 
 
+numberToList : Int -> List Int
+numberToList i =
+    i
+        |> toString
+        |> String.split ""
+        |> List.reverse
+        |> List.map String.toInt
+        |> List.map (Result.withDefault 0)
+
+
 
 ---- VIEW ----
 
 
-view : Model -> Html Msg
-view { l1, l2 } =
+viewAddition : List Int -> List Int -> Html Msg
+viewAddition l1 l2 =
     div []
-        [ h1 [] [ text "adder" ]
+        [ div [ Html.Attributes.style [ ( "min-width", "100px" ) ] ]
+            [ Html.div [] [ Html.text <| toString l1 ]
+            , Html.div [] [ Html.text <| toString l2 ]
+            , Html.div [] [ Html.text <| toString <| addLists l1 l2 ]
+            ]
+        , div [ Html.Attributes.style [ ( "height", "40px" ) ] ] []
+        , div [ Html.Attributes.style [ ( "min-width", "100px" ) ] ]
+            [ Html.div [] [ Html.text <| listToNumber l1 ]
+            , Html.div [ Html.Attributes.style [ ( "display", "flex" ) ] ]
+                [ Html.span [] [ Html.text "+" ]
+                , Html.span [ Html.Attributes.style [ ( "flex", "1" ) ] ] [ Html.text <| listToNumber l2 ]
+                ]
+            , Html.hr [] []
+            , Html.div [ Html.Attributes.style [ ( "font-weight", "bold" ) ] ] [ Html.text <| listToNumber <| addLists l1 l2 ]
+            ]
+        ]
+
+
+view : Model -> Html Msg
+view { l1, l2, n1, n2 } =
+    div []
+        [ Html.h3 [] [ text "Example " ]
         , div [ Html.Attributes.style [ ( "text-align", "right" ), ( "display", "flex" ), ( "flex-direction", "column" ), ( "align-items", "center" ) ] ]
-            [ div [ Html.Attributes.style [ ( "min-width", "100px" ) ] ]
-                [ Html.div [] [ Html.text <| toString l1 ]
-                , Html.div [] [ Html.text <| toString l2 ]
-                , Html.div [] [ Html.text <| toString <| addLists l1 l2 ]
+            [ Html.h3 [ Html.Attributes.style [ ( "height", "40px" ) ] ] [ Html.text "Update numbers below" ]
+            , div []
+                [ Html.div [] [ Html.label [] [ Html.text "n1 " ], Html.input [ Html.Events.onInput N1Changed, Html.Attributes.type_ "number", Html.Attributes.value <| toString n1 ] [] ]
+                , Html.div [] [ Html.label [] [ Html.text "n2 " ], Html.input [ Html.Events.onInput N2Changed, Html.Attributes.type_ "number", Html.Attributes.value <| toString n2 ] [] ]
                 ]
-            , div [ Html.Attributes.style [ ( "height", "40px" ) ] ] []
-            , div [ Html.Attributes.style [ ( "min-width", "100px" ) ] ]
-                [ Html.div [] [ Html.text <| listToNumber l1 ]
-                , Html.div [] [ Html.text <| listToNumber l2 ]
-                , Html.div [] [ Html.text <| listToNumber <| addLists l1 l2 ]
-                ]
+            , Html.h3 [ Html.Attributes.style [ ( "height", "40px" ) ] ] [ Html.text "Result" ]
+            , viewAddition (numberToList n1) (numberToList n2)
             ]
         ]
 
